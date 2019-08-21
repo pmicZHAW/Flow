@@ -257,7 +257,7 @@ int main(void)
         board_led_rgb(255,  0,  0, 1);
         board_led_rgb(255,  0,  0, 2);
         board_led_rgb(255,  0,  0, 3);
-                board_led_rgb(  0,255,  0, 3);
+        board_led_rgb(  0,255,  0, 3);
         board_led_rgb(  0,  0,255, 4);
 
 	/* enable FPU on Cortex-M4F core */
@@ -416,6 +416,13 @@ int main(void)
 		/* get sonar data */
 		distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
 
+        // HACK start
+        // ensure that sonar is always valid
+        distance_valid = true;
+        sonar_distance_filtered = 1.0f;
+        sonar_distance_raw = 1.0f;
+        // HACK end
+
 		/* reset to zero for invalid distances */
 		if (!distance_valid) {
 			sonar_distance_filtered = 0.0f;
@@ -452,8 +459,7 @@ int main(void)
 				accumulated_gyro_z += z_rate * deltatime / 1000000.0f;	//rad
 				accumulated_framecount++;
 				accumulated_quality += qual;
-			}
-
+			}           
 
 			/* integrate velocity and output values only if distance is valid */
 			if (distance_valid)
