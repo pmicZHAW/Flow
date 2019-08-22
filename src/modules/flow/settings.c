@@ -116,7 +116,7 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_IMAGE_HEIGHT] = READ_ONLY;
 
     // needs to be checked, pmic, default: 0
-    global_data.param[PARAM_IMAGE_LOW_LIGHT] = 1;
+    global_data.param[PARAM_IMAGE_LOW_LIGHT] = 0;
 	strcpy(global_data.param_name[PARAM_IMAGE_LOW_LIGHT], "IMAGE_L_LIGHT");
 	global_data.param_access[PARAM_IMAGE_LOW_LIGHT] = READ_WRITE;
 
@@ -195,13 +195,13 @@ void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_MAX_FLOW_PIXEL], "BFLOW_MAX_PIX");
 	global_data.param_access[PARAM_MAX_FLOW_PIXEL] = READ_ONLY;
 
-    // needs to be checked, pmic
+    // needs to be checked, pmic, default: 5000
 //	global_data.param[PARAM_BOTTOM_FLOW_VALUE_THRESHOLD] = 8 * 8 * 20;
 	global_data.param[PARAM_BOTTOM_FLOW_VALUE_THRESHOLD] = 5000; // threshold is irrelevant with this value
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_VALUE_THRESHOLD], "BFLOW_V_THLD");
 	global_data.param_access[PARAM_BOTTOM_FLOW_VALUE_THRESHOLD] = READ_WRITE;
 
-    // needs to be checked, pmic
+    // needs to be checked, pmic, default: 40
 //	global_data.param[PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD] = 100;
 	global_data.param[PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD] = 40;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD], "BFLOW_F_THLD");
