@@ -270,9 +270,9 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	f.qual = qual;
 	f.ground_distance = ground_distance * 1000;
 
-    f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 10;
-    f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 10;
-    f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 10;
+    f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155;
+    f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
+    f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 155;
 	f.gyro_range = getGyroRange();
 
 	uint32_t time_since_last_sonar_update;
