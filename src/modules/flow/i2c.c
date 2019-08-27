@@ -265,8 +265,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	f.frame_count = frame_count;
 	f.pixel_flow_x_sum = pixel_flow_x * 10.0f;
 	f.pixel_flow_y_sum = pixel_flow_y * 10.0f;
-	f.flow_comp_m_x = flow_comp_m_x * 1000;
-	f.flow_comp_m_y = flow_comp_m_y * 1000;
+    f.flow_comp_m_x = flow_comp_m_x * 6000;
+    f.flow_comp_m_y = flow_comp_m_y * 6000;
 	f.qual = qual;
 	f.ground_distance = ground_distance * 1000;
 

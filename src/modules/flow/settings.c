@@ -213,17 +213,19 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_BOTTOM_FLOW_HIST_FILTER] = READ_WRITE;
 
     // needs to be checked, pmic, default: 0
-    global_data.param[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = 1;
+    global_data.param[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = 0;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION], "BFLOW_GYRO_COM");
 	global_data.param_access[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = READ_WRITE;
 
-    // needs to be checked, pmic, default: 0
-    global_data.param[PARAM_BOTTOM_FLOW_LP_FILTERED] = 0;
+    // ok, pmic
+    global_data.param[PARAM_BOTTOM_FLOW_LP_FILTERED] = 1;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_LP_FILTERED], "BFLOW_LP_FIL");
 	global_data.param_access[PARAM_BOTTOM_FLOW_LP_FILTERED] = READ_WRITE;
 
-    // needs to be checked, pmic, default: 0.3f
-    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 0.3f; // Flow lowpass filter gain
+    // ok, pmic
+    // 0.3  @ 400 Hz corresponds to 22.7 Hz lowpass filter
+    // 0.61 @ 400 Hz corresponds to 60 Hz lowpass filter
+    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 0.61f; // Flow lowpass filter gain
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_WEIGHT_NEW], "BFLOW_W_NEW");
 	global_data.param_access[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = READ_WRITE;
 

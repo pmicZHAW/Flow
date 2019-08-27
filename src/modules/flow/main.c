@@ -416,12 +416,12 @@ int main(void)
 		/* get sonar data */
 		distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
 
-        // HACK start
+        // HACK pmic start
         // ensure that sonar is always valid
         distance_valid = true;
         sonar_distance_filtered = 1.0f;
         sonar_distance_raw = 1.0f;
-        // HACK end
+        // HACK pmic end
 
 		/* reset to zero for invalid distances */
 		if (!distance_valid) {
@@ -526,16 +526,18 @@ int main(void)
 			uavcan_timestamp_export(i2c_data);
                         uavcan_assign(range_data.time_stamp_utc, i2c_data.time_stamp_utc);
 			//update I2C transmitbuffer
-			if(valid_frame_count>0)
-			{
-				update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
+            // HACK pmic start
+            // if(valid_frame_count>0)
+            // {
+                update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_lp, velocity_y_lp, qual,
 						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
-			}
-			else
-			{
-				update_TX_buffer(pixel_flow_x, pixel_flow_y, 0.0f, 0.0f, qual,
-						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
-			}
+            // }
+            // else
+            // {
+            // 	update_TX_buffer(pixel_flow_x, pixel_flow_y, 0.0f, 0.0f, qual,
+            //			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+            //}
+            // HACK pmic end
 	                PROBE_2(false);
                         uavcan_publish(range, 40, range_data);
 	                PROBE_2(true);
