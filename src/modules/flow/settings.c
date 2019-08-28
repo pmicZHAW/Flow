@@ -80,7 +80,7 @@ void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_SYSTEM_SEND_STATE], "SYS_SEND_STATE");
 	global_data.param_access[PARAM_SYSTEM_SEND_STATE] = READ_WRITE;
 
-    // ok, pmic, default: 0
+    // ok, pmic, default: 1
     global_data.param[PARAM_SYSTEM_SEND_LPOS] = 0;
 	strcpy(global_data.param_name[PARAM_SYSTEM_SEND_LPOS], "SYS_SEND_LPOS");
 	global_data.param_access[PARAM_SYSTEM_SEND_LPOS] = READ_WRITE;
@@ -115,7 +115,7 @@ void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_IMAGE_HEIGHT], "IMAGE_HEIGHT");
 	global_data.param_access[PARAM_IMAGE_HEIGHT] = READ_ONLY;
 
-    // needs to be checked, pmic, default: 0
+    // pmic, default: 0
     global_data.param[PARAM_IMAGE_LOW_LIGHT] = 0;
 	strcpy(global_data.param_name[PARAM_IMAGE_LOW_LIGHT], "IMAGE_L_LIGHT");
 	global_data.param_access[PARAM_IMAGE_LOW_LIGHT] = READ_WRITE;
@@ -140,17 +140,17 @@ void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_GYRO_COMPENSATION_THRESHOLD], "GYRO_COMP_THR");
 	global_data.param_access[PARAM_GYRO_COMPENSATION_THRESHOLD] = READ_WRITE;
 
-    // ok, pmic, sonar is not used anymore
+    // ok, pmic, sonar is not used in px4flow sofware anymore
     global_data.param[PARAM_SONAR_FILTERED] = 0;
 	strcpy(global_data.param_name[PARAM_SONAR_FILTERED], "SONAR_FILTERED");
 	global_data.param_access[PARAM_SONAR_FILTERED] = READ_WRITE;
 
-    // ok, pmic, sonar is not used anymore
+    // ok, pmic, sonar is not used in px4flow sofware anymore
     global_data.param[PARAM_SONAR_KALMAN_L1] = 0.8461f;
 	strcpy(global_data.param_name[PARAM_SONAR_KALMAN_L1], "SONAR_KAL_L1");
 	global_data.param_access[PARAM_SONAR_KALMAN_L1] = READ_WRITE;
 
-    // ok, pmic, sonar is not used anymore
+    // ok, pmic, sonar is not used in px4flow sofware anymore
     global_data.param[PARAM_SONAR_KALMAN_L2] = 6.2034f;
 	strcpy(global_data.param_name[PARAM_SONAR_KALMAN_L2], "SONAR_KAL_L2");
 	global_data.param_access[PARAM_SONAR_KALMAN_L2] = READ_WRITE;
@@ -208,28 +208,33 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD] = READ_WRITE;
 
     // needs to be checked, pmic, default: 0
-	global_data.param[PARAM_BOTTOM_FLOW_HIST_FILTER] = 0;
+    global_data.param[PARAM_BOTTOM_FLOW_HIST_FILTER] = 0;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_HIST_FILTER], "BFLOW_HIST_FIL");
 	global_data.param_access[PARAM_BOTTOM_FLOW_HIST_FILTER] = READ_WRITE;
 
-    // needs to be checked, pmic, default: 0
+    // ok, pmic (we do this in our software)
     global_data.param[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = 0;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION], "BFLOW_GYRO_COM");
 	global_data.param_access[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = READ_WRITE;
 
-    // ok, pmic
+    // ok, pmic, default: 0
     global_data.param[PARAM_BOTTOM_FLOW_LP_FILTERED] = 1;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_LP_FILTERED], "BFLOW_LP_FIL");
 	global_data.param_access[PARAM_BOTTOM_FLOW_LP_FILTERED] = READ_WRITE;
 
-    // ok, pmic
+    // needs to be checked, pmic (evaluate internal filter from lidar an set px4flow filter accordingly)
     // 0.3  @ 400 Hz corresponds to 22.7 Hz lowpass filter
-    // 0.61 @ 400 Hz corresponds to 60 Hz lowpass filter
-    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 0.61f; // Flow lowpass filter gain
+    // 0.145 @ 400 Hz corresponds to 10 Hz lowpass filter
+    // 0.270 @ 400 Hz corresponds to 20 Hz lowpass filter
+    // 0.376 @ 400 Hz corresponds to 30 Hz lowpass filter
+    // 0.467 @ 400 Hz corresponds to 40 Hz lowpass filter
+    // 0.544 @ 400 Hz corresponds to 50 Hz lowpass filter
+    // 0.610 @ 400 Hz corresponds to 60 Hz lowpass filter
+    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 0.145f; // Flow lowpass filter gain
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_WEIGHT_NEW], "BFLOW_W_NEW");
 	global_data.param_access[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = READ_WRITE;
 
-    // what does this do ???, pmic
+    // ok, pmic
     global_data.param[PARAM_BOTTOM_FLOW_PUB_RATE] = 10.0f;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_PUB_RATE], "BFLOW_RATE");
 	global_data.param_access[PARAM_BOTTOM_FLOW_PUB_RATE] = READ_WRITE;

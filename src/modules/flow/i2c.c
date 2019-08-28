@@ -265,12 +265,12 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	f.frame_count = frame_count;
 	f.pixel_flow_x_sum = pixel_flow_x * 10.0f;
 	f.pixel_flow_y_sum = pixel_flow_y * 10.0f;
-    f.flow_comp_m_x = flow_comp_m_x * 6000;
-    f.flow_comp_m_y = flow_comp_m_y * 6000;
+    f.flow_comp_m_x = flow_comp_m_x * 6000; // 32767/6 -> +/- 5461 mm/s max. and min. velocity
+    f.flow_comp_m_y = flow_comp_m_y * 6000; // after the readout from i2c you have to scale it with 1/6 to get mm/s
 	f.qual = qual;
 	f.ground_distance = ground_distance * 1000;
 
-    f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155;
+    f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // after the readout from i2c you have to scale it with 3.2258e-4 to get rad/s
     f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
     f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 155;
 	f.gyro_range = getGyroRange();
