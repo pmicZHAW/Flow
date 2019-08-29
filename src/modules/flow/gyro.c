@@ -46,7 +46,7 @@
 
 float gyro_scale;
 float x_rate_offset = 0.0f, y_rate_offset = 0.0f, z_rate_offset = 0.0f;
-const float gyro_offset_lp_gain = 0.0001; // 0.0001 @ 400 Hz corresponds to 0.0075 Hz highpass filter
+const float gyro_offset_lp_gain = 0.0001;
 static int sensor_range;
 
 

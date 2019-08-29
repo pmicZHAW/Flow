@@ -207,7 +207,7 @@ void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD], "BFLOW_F_THLD");
 	global_data.param_access[PARAM_BOTTOM_FLOW_FEATURE_THRESHOLD] = READ_WRITE;
 
-    // needs to be checked, pmic, default: 0
+    // ok, pmic
     global_data.param[PARAM_BOTTOM_FLOW_HIST_FILTER] = 0;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_HIST_FILTER], "BFLOW_HIST_FIL");
 	global_data.param_access[PARAM_BOTTOM_FLOW_HIST_FILTER] = READ_WRITE;
@@ -223,14 +223,12 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_BOTTOM_FLOW_LP_FILTERED] = READ_WRITE;
 
     // needs to be checked, pmic (evaluate internal filter from lidar an set px4flow filter accordingly)
-    // 0.3  @ 400 Hz corresponds to 22.7 Hz lowpass filter
-    // 0.145 @ 400 Hz corresponds to 10 Hz lowpass filter
-    // 0.270 @ 400 Hz corresponds to 20 Hz lowpass filter
-    // 0.376 @ 400 Hz corresponds to 30 Hz lowpass filter
-    // 0.467 @ 400 Hz corresponds to 40 Hz lowpass filter
-    // 0.544 @ 400 Hz corresponds to 50 Hz lowpass filter
-    // 0.610 @ 400 Hz corresponds to 60 Hz lowpass filter
-    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 0.145f; // Flow lowpass filter gain
+    // 0.3  @ 160 Hz corresponds to 9.08 Hz lowpass filter
+    // 0.145 @ 160 Hz corresponds to 3.99 Hz lowpass filter
+    // 0.178 @ 160 Hz corresponds to 5.00 Hz lowpass filter
+    // 0.325 @ 160 Hz corresponds to 10.00 Hz lowpass filter
+    // 0.544 @ 160 Hz corresponds to 20.00 Hz lowpass filter
+    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 0.178f; // Flow lowpass filter gain
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_WEIGHT_NEW], "BFLOW_W_NEW");
 	global_data.param_access[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = READ_WRITE;
 
