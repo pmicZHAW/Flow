@@ -341,8 +341,19 @@ int main(void)
 	static uint16_t accumulated_quality = 0;
 	static uint32_t integration_timespan = 0;
 	static uint32_t lasttime = 0;
-	uint32_t time_since_last_sonar_update= 0;
-	uint32_t time_last_pub= 0;
+    uint32_t time_since_last_sonar_update = 0;
+    uint32_t time_last_pub = 0;
+
+    /*
+    // HACK pmic start
+    uint32_t time_lp_filter_update = 0;
+    uint32_t time_lp_filter_update_past = 0;
+    uint32_t delta_time_lp_filter_update = 0;
+    uint32_t time_i2c_write = 0;
+    uint32_t time_i2c_write_past = 0;
+    uint32_t delta_time_i2c_write = 0;
+    // HACK pmic end
+    */
 
 	uavcan_start();
 	/* main loop */
@@ -487,6 +498,13 @@ int main(void)
 					velocity_x_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
 					velocity_y_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
 				}
+                /*
+                // HACK pmic start
+                time_lp_filter_update = get_boot_time_us();
+                delta_time_lp_filter_update = time_lp_filter_update - time_lp_filter_update_past;
+                time_lp_filter_update_past = time_lp_filter_update;
+                // HACK pmic end
+                */
 			}
 			else
 			{
@@ -529,6 +547,13 @@ int main(void)
             // HACK pmic start
             // if(valid_frame_count>0)
             // {
+                /*
+                // HACK pmic start
+                time_i2c_write = get_boot_time_us();
+                delta_time_i2c_write = time_i2c_write - time_i2c_write_past;
+                time_i2c_write_past = time_i2c_write;
+                // HACK pmic end
+                */
                 update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_lp, velocity_y_lp, qual,
 						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
             // }

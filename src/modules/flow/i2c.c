@@ -263,8 +263,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	i2c_integral_frame f_integral;
 
 	f.frame_count = frame_count;
-	f.pixel_flow_x_sum = pixel_flow_x * 10.0f;
-	f.pixel_flow_y_sum = pixel_flow_y * 10.0f;
+    f.pixel_flow_x_sum = pixel_flow_x * 10.0f; // * 10.0f;
+    f.pixel_flow_y_sum = pixel_flow_y * 10.0f; // * 10.0f;
     f.flow_comp_m_x = flow_comp_m_x * 6000; // 32767/6 -> +/- 5461 mm/s max. and min. velocity
     f.flow_comp_m_y = flow_comp_m_y * 6000; // after the readout from i2c you have to scale it with 1/6 to get mm/s
 	f.qual = qual;
