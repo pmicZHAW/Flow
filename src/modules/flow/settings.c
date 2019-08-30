@@ -223,12 +223,14 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_BOTTOM_FLOW_LP_FILTERED] = READ_WRITE;
 
     // needs to be checked, pmic (evaluate internal filter from lidar an set px4flow filter accordingly)
+    // if the default filter is used
     // 0.3  @ 160 Hz corresponds to 9.08 Hz lowpass filter
     // 0.145 @ 160 Hz corresponds to 3.99 Hz lowpass filter
     // 0.178 @ 160 Hz corresponds to 5.00 Hz lowpass filter
     // 0.325 @ 160 Hz corresponds to 10.00 Hz lowpass filter
     // 0.544 @ 160 Hz corresponds to 20.00 Hz lowpass filter
-    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 0.178f; // Flow lowpass filter gain
+    // if the tustin filter is used the low pass bandwith frequency can be specified
+    global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = 5.0f; // Flow lowpass filter gain
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_WEIGHT_NEW], "BFLOW_W_NEW");
 	global_data.param_access[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = READ_WRITE;
 

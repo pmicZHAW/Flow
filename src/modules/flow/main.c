@@ -333,12 +333,12 @@ int main(void)
 	int pixel_flow_count = 0;
 
     // HACK pmic start
-    // float new_velocity_x_past = 0.0f;
-    // float new_velocity_y_past = 0.0f;
-    // float T = 1.0f / (2.0f * 3.1415927f * global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]);
-    // float Ts = 0.00625f; // was measured
-    // float bf_tustin = Ts / (2*T + Ts);
-    // float af_tustin = (Ts - 2*T) / (2*T + Ts);
+    float new_velocity_x_past = 0.0f;
+    float new_velocity_y_past = 0.0f;
+    float T = 1.0f / (2.0f * 3.1415927f * global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]);
+    float Ts = 0.00625f; // was measured
+    float bf_tustin = Ts / (2*T + Ts);
+    float af_tustin = (Ts - 2*T) / (2*T + Ts);
     // HACK pmic end
 
 	static float accumulated_flow_x = 0;
@@ -491,29 +491,29 @@ int main(void)
 				time_since_last_sonar_update = (get_boot_time_us()- get_sonar_measure_time());
 
                 // HACK pmic start
-				if (qual > 0)
-				{
+                // if (qual > 0)
+                // {
 					velocity_x_sum += new_velocity_x;
 					velocity_y_sum += new_velocity_y;
 
 					/* lowpass velocity output */
-                    velocity_x_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_x +
-                            (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
-                    velocity_y_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_y +
-                            (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
-                    // velocity_x_lp = bf_tustin * (new_velocity_x + new_velocity_x_past) - af_tustin * velocity_x_lp;
-                    // velocity_y_lp = bf_tustin * (new_velocity_y + new_velocity_y_past) - af_tustin * velocity_y_lp;
-				}
-				else
-				{
+                    // velocity_x_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_x +
+                    //         (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
+                    // velocity_y_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_y +
+                    //         (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
+                    velocity_x_lp = bf_tustin * (new_velocity_x + new_velocity_x_past) - af_tustin * velocity_x_lp;
+                    velocity_y_lp = bf_tustin * (new_velocity_y + new_velocity_y_past) - af_tustin * velocity_y_lp;
+                // }
+                // else
+                // {
 					/* taking flow as zero */
-                    velocity_x_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
-                    velocity_y_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
+                    // velocity_x_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
+                    // velocity_y_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
                     // velocity_x_lp = - af_tustin * velocity_x_lp;
                     // velocity_y_lp = - af_tustin * velocity_y_lp;
-				}
-                // new_velocity_x_past = new_velocity_x;
-                // new_velocity_y_past = new_velocity_y;
+                // }
+                new_velocity_x_past = new_velocity_x;
+                new_velocity_y_past = new_velocity_y;
                 // HACK pmic end
 
                 /*
