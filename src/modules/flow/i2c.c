@@ -253,6 +253,12 @@ void I2C1_ER_IRQHandler(void) {
 	}
 }
 
+// original
+// 	update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
+// 			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+// HACK pmic
+//	update_TX_buffer(flow_compx, flow_compy, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
+//			update_TX_buffer_deltatime, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
 void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 		float flow_comp_m_x, float flow_comp_m_y, uint8_t qual,
 		float ground_distance, float gyro_x_rate, float gyro_y_rate,
@@ -263,16 +269,16 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	i2c_integral_frame f_integral;
 
 	f.frame_count = frame_count;
-	f.pixel_flow_x_sum = pixel_flow_x * 10.0f;
-	f.pixel_flow_y_sum = pixel_flow_y * 10.0f;
-	f.flow_comp_m_x = flow_comp_m_x * 1000;
-	f.flow_comp_m_y = flow_comp_m_y * 1000;
+	f.pixel_flow_x_sum = pixel_flow_x * 6000; // flow_compx
+	f.pixel_flow_y_sum = pixel_flow_y * 6000; // flow_compy
+	f.flow_comp_m_x = flow_comp_m_x * 6000;   // velocity_x_sum/valid_frame_count
+	f.flow_comp_m_y = flow_comp_m_y * 6000;   // velocity_x_sum/valid_frame_count
 	f.qual = qual;
-	f.ground_distance = ground_distance * 1000;
+	f.ground_distance = ground_distance;      // update_TX_buffer_deltatime in ms
 
-	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor();
-	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor();
-	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor();
+	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // avg gyro after the readout from i2c you have to scale it with 3.7742e-04 to get rad/s
+	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
+	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 155;
 	f.gyro_range = getGyroRange();
 
 	uint32_t time_since_last_sonar_update;
@@ -288,13 +294,19 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 
 	static float accumulated_flow_x = 0;
 	static float accumulated_flow_y = 0;
-	static uint16_t accumulated_framecount = 0;
+	// static uint16_t accumulated_framecount = 0;
 	static uint16_t accumulated_quality = 0;
 	static float accumulated_gyro_x = 0;
 	static float accumulated_gyro_y = 0;
 	static float accumulated_gyro_z = 0;
 	static uint32_t integration_timespan = 0;
 	static uint32_t lasttime = 0;
+	
+	static uint16_t accumulated_framecount = 0;
+	static uint16_t accumulated_valid_framecount;
+	static uint32_t stop_accumulation_lasttime = 0;
+	static uint32_t stop_accumulation_thistime = 0;
+	static float stop_accumulation_deltatime = 0;
 
 	/* calculate focal_length in pixel */
 	const float focal_length_px = ((global_data.param[PARAM_FOCAL_LENGTH_MM])
@@ -307,12 +319,16 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 //		mavlink_msg_optical_flow_send(MAVLINK_COMM_2, get_boot_time_us(),
 //				global_data.param[PARAM_SENSOR_ID], accumulated_flow_x * 10.0f,
 //				accumulated_gyro_x * 10.0f, integration_timespan,
-//				accumulated_framecount, (uint8_t) (accumulated_quality / accumulated_framecount), ground_distance);
+//				accumulated_valid_framecount, (uint8_t) (accumulated_quality / accumulated_valid_framecount), ground_distance);
+
+		stop_accumulation_thistime = get_boot_time_us() * 1000;
+		stop_accumulation_deltatime = (float)(stop_accumulation_thistime - update_TX_buffer_lasttime);
+		stop_accumulation_lasttime = stop_accumulation_thistime;
 
 		integration_timespan = 0;
 		accumulated_flow_x = 0;			 //mrad
 		accumulated_flow_y = 0;			 //mrad
-		accumulated_framecount = 0;
+		accumulated_valid_framecount = 0;
 		accumulated_quality = 0;
 		accumulated_gyro_x = 0;			 //mrad
 		accumulated_gyro_y = 0;			 //mrad
@@ -323,32 +339,35 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	//accumulate flow and gyro values between sucessive I2C readings
 	//update only if qual !=0
 	if (qual > 0) {
-		uint32_t deltatime = (get_boot_time_us() - lasttime);
+		// uint32_t deltatime = (get_boot_time_us() - lasttime);
 		integration_timespan += deltatime;
-		accumulated_flow_x += pixel_flow_y * 1000.0f / focal_length_px * 1.0f;//mrad axis swapped to align x flow around y axis
-		accumulated_flow_y += pixel_flow_x * 1000.0f / focal_length_px * -1.0f;	//mrad
-		accumulated_framecount++;
+		accumulated_flow_x += pixel_flow_x;
+		accumulated_flow_y += pixel_flow_y;
+		accumulated_valid_framecount++;
 		accumulated_quality += qual;
-		accumulated_gyro_x += gyro_x_rate * deltatime * 0.001f;	//mrad  gyro_x_rate * 1000.0f*deltatime/1000000.0f;
-		accumulated_gyro_y += gyro_y_rate * deltatime * 0.001f;	//mrad
-		accumulated_gyro_z += gyro_z_rate * deltatime * 0.001f;	//mrad
+		// accumulated_gyro_x += gyro_x_rate * deltatime * 0.001f;	//mrad  gyro_x_rate * 1000.0f*deltatime/1000000.0f;
+		// accumulated_gyro_y += gyro_y_rate * deltatime * 0.001f;	//mrad
+		// accumulated_gyro_z += gyro_z_rate * deltatime * 0.001f;	//mrad
 	}
+	accumulated_framecount++;
+	accumulated_gyro_x += gyro_x_rate;
+	accumulated_gyro_y += gyro_y_rate;
+	accumulated_gyro_z += gyro_z_rate;
 
 	//update lasttime
-	lasttime = get_boot_time_us();
+	// lasttime = get_boot_time_us();
 
-	f_integral.frame_count_since_last_readout = accumulated_framecount;
-	f_integral.gyro_x_rate_integral = accumulated_gyro_x * 10.0f;	//mrad*10
-	f_integral.gyro_y_rate_integral = accumulated_gyro_y * 10.0f;	//mrad*10
-	f_integral.gyro_z_rate_integral = accumulated_gyro_z * 10.0f; //mrad*10
-	f_integral.pixel_flow_x_integral = accumulated_flow_x * 10.0f; //mrad*10
-	f_integral.pixel_flow_y_integral = accumulated_flow_y * 10.0f; //mrad*10
-	f_integral.integration_timespan = integration_timespan;     //microseconds
-	f_integral.ground_distance = ground_distance * 1000;		    //mmeters
-	f_integral.sonar_timestamp = time_since_last_sonar_update;  //microseconds
-	f_integral.qual =
-			(uint8_t) (accumulated_quality / accumulated_framecount); //0-255 linear quality measurement 0=bad, 255=best
-	f_integral.gyro_temperature = gyro_temp;//Temperature * 100 in centi-degrees Celsius
+	f_integral.frame_count_since_last_readout = accumulated_valid_framecount; // accumulated_valid_framecount
+	f_integral.gyro_x_rate_integral = accumulated_gyro_x * getGyroScalingFactor() * 155 / accumulated_framecount; // avg gyro after the readout from i2c you have to scale it with 3.7742e-04 to get rad/s
+	f_integral.gyro_y_rate_integral = accumulated_gyro_y * getGyroScalingFactor() * 155 / accumulated_framecount;
+	f_integral.gyro_z_rate_integral = accumulated_gyro_z * getGyroScalingFactor() * 155 / accumulated_framecount;
+	f_integral.pixel_flow_x_integral = accumulated_flow_x * 6000 / accumulated_valid_framecount; // avg flow_x
+	f_integral.pixel_flow_y_integral = accumulated_flow_y * 6000 / accumulated_valid_framecount; // avg flow_y
+	f_integral.integration_timespan = accumulated_framecount;   // accumulated_framecount
+	f_integral.ground_distance = ground_distance;		        // update_TX_buffer_deltatime in ms
+	f_integral.sonar_timestamp = stop_accumulation_deltatime;   // stop_accumulation_deltatime in ms
+	f_integral.qual = (uint8_t)(accumulated_quality / accumulated_valid_framecount); // 0-255 linear quality measurement 0=bad, 255=best
+	f_integral.gyro_temperature = gyro_temp; // Temperature * 100 in centi-degrees Celsius
 
 	notpublishedIndexFrame1 = 1 - publishedIndexFrame1; // choose not the current published 1 buffer
 	notpublishedIndexFrame2 = 1 - publishedIndexFrame2; // choose not the current published 2 buffer
