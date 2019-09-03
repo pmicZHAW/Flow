@@ -345,6 +345,9 @@ int main(void)
 	uint32_t time_last_pub = 0;
 	
 	static uint16_t accumulated_framecount = 0;
+    static uint32_t update_thistime = 0;
+    static uint32_t update_lasttime = 0;
+    float update_deltatime = 0;
 
 	uavcan_start();
 	/* main loop */
@@ -441,6 +444,11 @@ int main(void)
 			float flow_compx = pixel_flow_x / focal_length_px / (get_time_between_images() / 1000000.0f);
 			float flow_compy = pixel_flow_y / focal_length_px / (get_time_between_images() / 1000000.0f);
 
+            // sampletime in ms
+            update_thistime = get_boot_time_us();
+            update_deltatime = (float)(update_thistime - update_lasttime);
+            update_lasttime = update_thistime;
+
 			if (qual > 0)
 			{
 				valid_frame_count++;
@@ -457,48 +465,47 @@ int main(void)
 			}
 			accumulated_framecount++;
 
+            /* integrate velocity and output values only if distance is valid */
+            if (distance_valid)
+            {
+                /* calc velocity (negative of flow values scaled with distance) */
+                float new_velocity_x = - flow_compx * sonar_distance_filtered;
+                float new_velocity_y = - flow_compy * sonar_distance_filtered;
 
-			/* integrate velocity and output values only if distance is valid */
-			if (distance_valid)
-			{
-				/* calc velocity (negative of flow values scaled with distance) */
-				float new_velocity_x = - flow_compx * sonar_distance_filtered;
-				float new_velocity_y = - flow_compy * sonar_distance_filtered;
+                time_since_last_sonar_update = (get_boot_time_us()- get_sonar_measure_time());
 
-				time_since_last_sonar_update = (get_boot_time_us()- get_sonar_measure_time());
+                if (qual > 0)
+                {
+                    velocity_x_sum += new_velocity_x;
+                    velocity_y_sum += new_velocity_y;
 
-				if (qual > 0)
-				{
-					velocity_x_sum += new_velocity_x;
-					velocity_y_sum += new_velocity_y;
+                    /* lowpass velocity output */
+                    velocity_x_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_x +
+                            (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
+                    velocity_y_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_y +
+                            (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
+                }
+                else
+                {
+                    /* taking flow as zero */
+                    velocity_x_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
+                    velocity_y_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
+                }
+            }
+            else
+            {
+                /* taking flow as zero */
+                velocity_x_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
+                velocity_y_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
+            }
+            //update lasttime
+            lasttime = get_boot_time_us();
 
-					/* lowpass velocity output */
-					velocity_x_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_x +
-							(1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
-					velocity_y_lp = global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW] * new_velocity_y +
-							(1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
-				}
-				else
-				{
-					/* taking flow as zero */
-					velocity_x_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
-					velocity_y_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
-				}
-			}
-			else
-			{
-				/* taking flow as zero */
-				velocity_x_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_x_lp;
-				velocity_y_lp = (1.0f - global_data.param[PARAM_BOTTOM_FLOW_WEIGHT_NEW]) * velocity_y_lp;
-			}
-			//update lasttime
-			lasttime = get_boot_time_us();
+            pixel_flow_x_sum += pixel_flow_x;
+            pixel_flow_y_sum += pixel_flow_y;
+            pixel_flow_count++;
 
-			pixel_flow_x_sum += pixel_flow_x;
-			pixel_flow_y_sum += pixel_flow_y;
-			pixel_flow_count++;
-
-		}
+        }
 
 		counter++;
 
@@ -509,14 +516,14 @@ int main(void)
 			float ground_distance = 0.0f;
 
 
-			if(FLOAT_AS_BOOL(global_data.param[PARAM_SONAR_FILTERED]))
-			{
-				ground_distance = sonar_distance_filtered;
-			}
-			else
-			{
-				ground_distance = sonar_distance_raw;
-			}
+            if(FLOAT_AS_BOOL(global_data.param[PARAM_SONAR_FILTERED]))
+            {
+                ground_distance = sonar_distance_filtered;
+            }
+            else
+            {
+                ground_distance = sonar_distance_raw;
+            }
 
 			uavcan_define_export(i2c_data, legacy_12c_data_t, ccm);
 			uavcan_define_export(range_data, range_data_t, ccm);
@@ -550,37 +557,34 @@ int main(void)
 			{
 				time_last_pub = now;
 
-				float flow_comp_m_x = 0.0f;
-				float flow_comp_m_y = 0.0f;
+                float flow_comp_m_x = 0.0f;
+                float flow_comp_m_y = 0.0f;
 
-				if(FLOAT_AS_BOOL(global_data.param[PARAM_BOTTOM_FLOW_LP_FILTERED]))
-				{
-					flow_comp_m_x = velocity_x_lp;
-					flow_comp_m_y = velocity_y_lp;
-				}
-				else
-				{
-					if(valid_frame_count>0)
-					{
-						flow_comp_m_x = velocity_x_sum/valid_frame_count;
-						flow_comp_m_y = velocity_y_sum/valid_frame_count;
-					}
-					else
-					{
-						flow_comp_m_x = 0.0f;
-						flow_comp_m_y = 0.0f;
-					}
-				}
-				
+                if(FLOAT_AS_BOOL(global_data.param[PARAM_BOTTOM_FLOW_LP_FILTERED]))
+                {
+                    flow_comp_m_x = velocity_x_lp;
+                    flow_comp_m_y = velocity_y_lp;
+                }
+                else
+                {
+                    if(valid_frame_count>0)
+                    {
+                        flow_comp_m_x = velocity_x_sum/valid_frame_count;
+                        flow_comp_m_y = velocity_y_sum/valid_frame_count;
+                    }
+                    else
+                    {
+                        flow_comp_m_x = 0.0f;
+                        flow_comp_m_y = 0.0f;
+                    }
+                }
 
-				
-				
 				//	update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
 				//			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
 				//update I2C transmitbuffer
 				update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
 							accumulated_valid_framecount, accumulated_framecount,
-							accumulated_quality/accumulated_valid_framecount, ground_distance, x_rate, y_rate, z_rate,
+                            accumulated_quality/accumulated_valid_framecount, update_deltatime, x_rate, y_rate, z_rate,
 							gyro_temp, uavcan_use_export(i2c_data));
 
 				// send flow
@@ -592,7 +596,7 @@ int main(void)
 						integration_timespan, accumulated_flow_x, accumulated_flow_y,
 						accumulated_gyro_x, accumulated_gyro_y, accumulated_gyro_z,
 						gyro_temp, accumulated_quality/accumulated_valid_framecount,
-						time_since_last_sonar_update,ground_distance);
+                        time_since_last_sonar_update,ground_distance);
 
 				/* send approximate local position estimate without heading */
 				if (FLOAT_AS_BOOL(global_data.param[PARAM_SYSTEM_SEND_LPOS]))

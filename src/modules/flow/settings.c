@@ -186,7 +186,7 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_VIDEO_ONLY] = READ_WRITE;
 
 	// ok, pmic
-	global_data.param[PARAM_VIDEO_RATE] = 50;
+    global_data.param[PARAM_VIDEO_RATE] = 50;
 	strcpy(global_data.param_name[PARAM_VIDEO_RATE], "VIDEO_RATE");
 	global_data.param_access[PARAM_VIDEO_RATE] = READ_WRITE;
 
@@ -211,7 +211,7 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_BOTTOM_FLOW_HIST_FILTER] = READ_WRITE;
 
 	// ok, pmic (we do this in our software)
-	global_data.param[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = 0;
+    global_data.param[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = 1;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION], "BFLOW_GYRO_COM");
 	global_data.param_access[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = READ_WRITE;
 
@@ -226,7 +226,7 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = READ_WRITE;
 
 	// ok, pmic, 50.0f := 50 Hz Updaterate
-	global_data.param[PARAM_BOTTOM_FLOW_PUB_RATE] = 10.0f;
+    global_data.param[PARAM_BOTTOM_FLOW_PUB_RATE] = 21.0f;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_PUB_RATE], "BFLOW_RATE");
 	global_data.param_access[PARAM_BOTTOM_FLOW_PUB_RATE] = READ_WRITE;
 

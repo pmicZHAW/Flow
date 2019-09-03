@@ -265,7 +265,7 @@ void I2C1_ER_IRQHandler(void) {
 // after
 // update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
 //			accumulated_valid_framecount, accumulated_framecount,
-//			accumulated_quality/accumulated_valid_framecount, ground_distance, x_rate, y_rate, z_rate,
+//			accumulated_quality/accumulated_valid_framecount, update_deltatime, x_rate, y_rate, z_rate,
 //			gyro_temp, uavcan_use_export(i2c_data));
 
 void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
@@ -276,7 +276,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	
 	
 	// sampletime in ms
-	update_thistime = get_boot_time_ms();
+    update_thistime = get_boot_time_ms();
 	update_deltatime = (float)(update_thistime - update_lasttime);
 	update_lasttime = update_thistime;
 
@@ -294,18 +294,22 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // avg gyro after the readout from i2c you have to scale it with 3.7742e-04 to get rad/s
 	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
 	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 155;
-	f.gyro_range = gyro_temp;
+    f.gyro_range = gyro_temp; // temperature * 100 in centi-degrees Celsius
 
 	uint32_t time_since_last_sonar_update;
 
 	time_since_last_sonar_update = (get_boot_time_us()
 			- get_sonar_measure_time());
 
+    /*
 	if (time_since_last_sonar_update < 255 * 1000) {
 		f.sonar_timestamp = time_since_last_sonar_update / 1000; //convert to ms
 	} else {
 		f.sonar_timestamp = 255;
 	}
+    */
+
+    f.sonar_timestamp = ground_distance / 50.0f; // update_deltatime flow_comp in mus
 
 	static float accumulated_flow_x = 0;
 	static float accumulated_flow_y = 0;
@@ -369,7 +373,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	f_integral.sonar_timestamp = time_since_last_sonar_update;  //microseconds
 	f_integral.qual =
 			(uint8_t) (accumulated_quality / accumulated_framecount); //0-255 linear quality measurement 0=bad, 255=best
-	f_integral.gyro_temperature = gyro_temp;//Temperature * 100 in centi-degrees Celsius
+    f_integral.gyro_temperature = gyro_temp; // temperature * 100 in centi-degrees Celsius
 
 	notpublishedIndexFrame1 = 1 - publishedIndexFrame1; // choose not the current published 1 buffer
 	notpublishedIndexFrame2 = 1 - publishedIndexFrame2; // choose not the current published 2 buffer
