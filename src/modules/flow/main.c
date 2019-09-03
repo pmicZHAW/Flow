@@ -304,9 +304,9 @@ int main(void)
     i2c_init();
 
 	/* sonar config*/
-	float sonar_distance_filtered = 0.0f; // distance in meter
-	float sonar_distance_raw = 0.0f; // distance in meter
-	bool distance_valid = false;
+	float sonar_distance_filtered = 1.0f; // distance in meter
+	float sonar_distance_raw = 1.0f; // distance in meter
+	bool distance_valid = true;
 	sonar_config();
 
 	/* reset/start timers */
@@ -337,12 +337,14 @@ int main(void)
 	static float accumulated_gyro_x = 0;
 	static float accumulated_gyro_y = 0;
 	static float accumulated_gyro_z = 0;
-	static uint16_t accumulated_framecount = 0;
+	static uint16_t accumulated_valid_framecount = 0;
 	static uint16_t accumulated_quality = 0;
 	static uint32_t integration_timespan = 0;
 	static uint32_t lasttime = 0;
 	uint32_t time_since_last_sonar_update= 0;
-	uint32_t time_last_pub= 0;
+	uint32_t time_last_pub = 0;
+	
+	static uint16_t accumulated_framecount = 0;
 
 	uavcan_start();
 	/* main loop */
@@ -414,13 +416,13 @@ int main(void)
 		const float focal_length_px = (global_data.param[PARAM_FOCAL_LENGTH_MM]) / (4.0f * 6.0f) * 1000.0f; //original focal lenght: 12mm pixelsize: 6um, binning 4 enabled
 
 		/* get sonar data */
-		distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
+		// distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
 
 		/* reset to zero for invalid distances */
-		if (!distance_valid) {
-			sonar_distance_filtered = 0.0f;
-			sonar_distance_raw = 0.0f;
-		}
+		// if (!distance_valid) {
+		// 	sonar_distance_filtered = 0.0f;
+		//	sonar_distance_raw = 0.0f;
+		// }
 
 		/* compute optical flow */
 		if (FLOAT_EQ_INT(global_data.param[PARAM_SENSOR_POSITION], BOTTOM))
@@ -445,14 +447,15 @@ int main(void)
 
 				uint32_t deltatime = (get_boot_time_us() - lasttime);
 				integration_timespan += deltatime;
-				accumulated_flow_x += pixel_flow_y  / focal_length_px * 1.0f; //rad axis swapped to align x flow around y axis
-				accumulated_flow_y += pixel_flow_x  / focal_length_px * -1.0f;//rad
+				accumulated_flow_x += flow_compx;
+				accumulated_flow_y += flow_compy;
 				accumulated_gyro_x += x_rate * deltatime / 1000000.0f;	//rad
 				accumulated_gyro_y += y_rate * deltatime / 1000000.0f;	//rad
 				accumulated_gyro_z += z_rate * deltatime / 1000000.0f;	//rad
-				accumulated_framecount++;
+				accumulated_valid_framecount++;
 				accumulated_quality += qual;
 			}
+			accumulated_framecount++;
 
 
 			/* integrate velocity and output values only if distance is valid */
@@ -515,28 +518,30 @@ int main(void)
 				ground_distance = sonar_distance_raw;
 			}
 
-                        uavcan_define_export(i2c_data, legacy_12c_data_t, ccm);
-                        uavcan_define_export(range_data, range_data_t, ccm);
+			uavcan_define_export(i2c_data, legacy_12c_data_t, ccm);
+			uavcan_define_export(range_data, range_data_t, ccm);
 			uavcan_timestamp_export(i2c_data);
-                        uavcan_assign(range_data.time_stamp_utc, i2c_data.time_stamp_utc);
+			uavcan_assign(range_data.time_stamp_utc, i2c_data.time_stamp_utc);
+			
 			//update I2C transmitbuffer
-			if(valid_frame_count>0)
-			{
-				update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
-						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
-			}
-			else
-			{
-				update_TX_buffer(pixel_flow_x, pixel_flow_y, 0.0f, 0.0f, qual,
-						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
-			}
-	                PROBE_2(false);
-                        uavcan_publish(range, 40, range_data);
-	                PROBE_2(true);
+			//if(valid_frame_count>0)
+			//{
+			//	update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
+			//			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+			//}
+			//else
+			//{
+			//	update_TX_buffer(pixel_flow_x, pixel_flow_y, 0.0f, 0.0f, qual,
+			//			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+			//}
+			
+			PROBE_2(false);
+				uavcan_publish(range, 40, range_data);
+			PROBE_2(true);
 
-                        PROBE_3(false);
-                        uavcan_publish(flow, 40, i2c_data);
-                        PROBE_3(true);
+			PROBE_3(false);
+			uavcan_publish(flow, 40, i2c_data);
+			PROBE_3(true);
 
             //serial mavlink  + usb mavlink output throttled
 			uint32_t now = get_boot_time_us();
@@ -566,7 +571,17 @@ int main(void)
 						flow_comp_m_y = 0.0f;
 					}
 				}
+				
 
+				
+				
+				//	update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
+				//			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+				//update I2C transmitbuffer
+				update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
+							accumulated_valid_framecount, accumulated_framecount,
+							accumulated_quality/accumulated_valid_framecount, ground_distance, x_rate, y_rate, z_rate,
+							gyro_temp, uavcan_use_export(i2c_data));
 
 				// send flow
 				mavlink_msg_optical_flow_send(MAVLINK_COMM_0, get_boot_time_us(), global_data.param[PARAM_SENSOR_ID],
@@ -576,7 +591,7 @@ int main(void)
 				mavlink_msg_optical_flow_rad_send(MAVLINK_COMM_0, get_boot_time_us(), global_data.param[PARAM_SENSOR_ID],
 						integration_timespan, accumulated_flow_x, accumulated_flow_y,
 						accumulated_gyro_x, accumulated_gyro_y, accumulated_gyro_z,
-						gyro_temp, accumulated_quality/accumulated_framecount,
+						gyro_temp, accumulated_quality/accumulated_valid_framecount,
 						time_since_last_sonar_update,ground_distance);
 
 				/* send approximate local position estimate without heading */
@@ -610,7 +625,7 @@ int main(void)
 					mavlink_msg_optical_flow_rad_send(MAVLINK_COMM_2, get_boot_time_us(), global_data.param[PARAM_SENSOR_ID],
 							integration_timespan, accumulated_flow_x, accumulated_flow_y,
 							accumulated_gyro_x, accumulated_gyro_y, accumulated_gyro_z,
-							gyro_temp, accumulated_quality/accumulated_framecount,
+							gyro_temp, accumulated_quality/accumulated_valid_framecount,
 							time_since_last_sonar_update,ground_distance);
 				}
 
@@ -623,7 +638,7 @@ int main(void)
 				integration_timespan = 0;
 				accumulated_flow_x = 0;
 				accumulated_flow_y = 0;
-				accumulated_framecount = 0;
+				accumulated_valid_framecount = 0;
 				accumulated_quality = 0;
 				accumulated_gyro_x = 0;
 				accumulated_gyro_y = 0;
@@ -635,6 +650,8 @@ int main(void)
 				pixel_flow_y_sum = 0.0f;
 				valid_frame_count = 0;
 				pixel_flow_count = 0;
+				
+				accumulated_framecount = 0;
 			}
 		}
 

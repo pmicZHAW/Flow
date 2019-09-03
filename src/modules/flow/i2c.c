@@ -102,6 +102,10 @@ uint8_t readout_done_frame1 = 1;
 uint8_t readout_done_frame2 = 1;
 uint8_t stop_accumulation = 0;
 
+static uint32_t update_thistime = 0;
+static uint32_t update_lasttime = 0;
+float update_deltatime = 0;
+
 void i2c_init() {
 
 	I2C_DeInit(I2C1 );       //Deinit and reset the I2C to avoid it locking up
@@ -253,27 +257,44 @@ void I2C1_ER_IRQHandler(void) {
 	}
 }
 
+
+// before
+//	update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
+//			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+
+// after
+// update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
+//			accumulated_valid_framecount, accumulated_framecount,
+//			accumulated_quality/accumulated_valid_framecount, ground_distance, x_rate, y_rate, z_rate,
+//			gyro_temp, uavcan_use_export(i2c_data));
+
 void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 		float flow_comp_m_x, float flow_comp_m_y, uint8_t qual,
 		float ground_distance, float gyro_x_rate, float gyro_y_rate,
 		float gyro_z_rate, int16_t gyro_temp, legacy_12c_data_t *pd) {
 	static uint16_t frame_count = 0;
+	
+	
+	// sampletime in ms
+	update_thistime = get_boot_time_ms();
+	update_deltatime = (float)(update_thistime - update_lasttime);
+	update_lasttime = update_thistime;
 
 	i2c_frame f;
 	i2c_integral_frame f_integral;
 
 	f.frame_count = frame_count;
-	f.pixel_flow_x_sum = pixel_flow_x * 10.0f;
-	f.pixel_flow_y_sum = pixel_flow_y * 10.0f;
-	f.flow_comp_m_x = flow_comp_m_x * 1000;
-	f.flow_comp_m_y = flow_comp_m_y * 1000;
-	f.qual = qual;
-	f.ground_distance = ground_distance * 1000;
+	f.pixel_flow_x_sum = pixel_flow_x * 6000.0f; // accumulated_flow_x/accumulated_valid_framecount
+	f.pixel_flow_y_sum = pixel_flow_y * 6000.0f; // accumulated_flow_y/accumulated_valid_framecount
+	f.flow_comp_m_x = flow_comp_m_x;             // accumulated_valid_framecount
+	f.flow_comp_m_y = flow_comp_m_y;             // accumulated_framecount
+	f.qual = qual;                               // accumulated_quality/accumulated_valid_framecount
+	f.ground_distance = update_deltatime;        // update_deltatime TX_buffer in ms
 
-	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor();
-	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor();
-	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor();
-	f.gyro_range = getGyroRange();
+	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // avg gyro after the readout from i2c you have to scale it with 3.7742e-04 to get rad/s
+	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
+	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 155;
+	f.gyro_range = gyro_temp;
 
 	uint32_t time_since_last_sonar_update;
 
