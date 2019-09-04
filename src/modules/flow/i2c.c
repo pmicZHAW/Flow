@@ -265,14 +265,14 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	f.frame_count = frame_count;
 	f.pixel_flow_x_sum = pixel_flow_x * 10.0f;
 	f.pixel_flow_y_sum = pixel_flow_y * 10.0f;
-	f.flow_comp_m_x = flow_comp_m_x * 1000;
-	f.flow_comp_m_y = flow_comp_m_y * 1000;
+	f.flow_comp_m_x = flow_comp_m_x * 6000.0f;
+	f.flow_comp_m_y = flow_comp_m_y * 6000.0f;
 	f.qual = qual;
 	f.ground_distance = ground_distance * 1000;
 
-	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor();
-	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor();
-	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor();
+	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // avg gyro after the readout from i2c you have to scale it with 3.7742e-04 to get rad/s
+	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
+	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 155;
 	f.gyro_range = getGyroRange();
 
 	uint32_t time_since_last_sonar_update;

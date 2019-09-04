@@ -304,9 +304,9 @@ int main(void)
     i2c_init();
 
 	/* sonar config*/
-	float sonar_distance_filtered = 0.0f; // distance in meter
-	float sonar_distance_raw = 0.0f; // distance in meter
-	bool distance_valid = false;
+	float sonar_distance_filtered = 1.0f; // distance in meter
+	float sonar_distance_raw = 1.0f; // distance in meter
+	bool distance_valid = true;
 	sonar_config();
 
 	/* reset/start timers */
@@ -414,13 +414,13 @@ int main(void)
 		const float focal_length_px = (global_data.param[PARAM_FOCAL_LENGTH_MM]) / (4.0f * 6.0f) * 1000.0f; //original focal lenght: 12mm pixelsize: 6um, binning 4 enabled
 
 		/* get sonar data */
-		distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
+		// distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
 
 		/* reset to zero for invalid distances */
-		if (!distance_valid) {
-			sonar_distance_filtered = 0.0f;
-			sonar_distance_raw = 0.0f;
-		}
+		// if (!distance_valid) {
+		// 	sonar_distance_filtered = 0.0f;
+		//	sonar_distance_raw = 0.0f;
+		// }
 
 		/* compute optical flow */
 		if (FLOAT_EQ_INT(global_data.param[PARAM_SENSOR_POSITION], BOTTOM))
