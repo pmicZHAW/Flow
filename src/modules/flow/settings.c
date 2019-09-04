@@ -136,7 +136,7 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_GYRO_SENSITIVITY_DPS] = READ_WRITE;
 
     // ok, pmic, default: 0.01
-    global_data.param[PARAM_GYRO_COMPENSATION_THRESHOLD] = 0.01;
+    global_data.param[PARAM_GYRO_COMPENSATION_THRESHOLD] = 0.05;
 	strcpy(global_data.param_name[PARAM_GYRO_COMPENSATION_THRESHOLD], "GYRO_COMP_THR");
 	global_data.param_access[PARAM_GYRO_COMPENSATION_THRESHOLD] = READ_WRITE;
 
@@ -210,7 +210,7 @@ void global_data_reset_param_defaults(void){
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_HIST_FILTER], "BFLOW_HIST_FIL");
 	global_data.param_access[PARAM_BOTTOM_FLOW_HIST_FILTER] = READ_WRITE;
 
-	// ok, pmic (we do this in our software)
+    // ok, pmic
     global_data.param[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = 1;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION], "BFLOW_GYRO_COM");
 	global_data.param_access[PARAM_BOTTOM_FLOW_GYRO_COMPENSATION] = READ_WRITE;
