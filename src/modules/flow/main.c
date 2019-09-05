@@ -347,7 +347,7 @@ int main(void)
 	static uint16_t accumulated_framecount = 0;
     static uint32_t update_thistime = 0;
     static uint32_t update_lasttime = 0;
-    float update_deltatime = 0;
+    float update_fs = 0.0f;
 
 	uavcan_start();
 	/* main loop */
@@ -446,7 +446,7 @@ int main(void)
 
             // sampletime in ms
             update_thistime = get_boot_time_us();
-            update_deltatime = (float)(update_thistime - update_lasttime);
+            update_fs = 1.0f/( (float)(update_thistime - update_lasttime) * 0.000001f );
             update_lasttime = update_thistime;
 
 			if (qual > 0)
@@ -590,14 +590,14 @@ int main(void)
                 {
                     update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
                                 accumulated_valid_framecount, accumulated_framecount,
-                                accumulated_quality/accumulated_valid_framecount, update_deltatime, x_rate, y_rate, z_rate,
+                                accumulated_quality/accumulated_valid_framecount, update_fs, x_rate, y_rate, z_rate,
                                 gyro_temp, uavcan_use_export(i2c_data));
                 }
                 else
                 {
                     update_TX_buffer(0.0f, 0.0f,
                                 accumulated_valid_framecount, accumulated_framecount,
-                                0, update_deltatime, x_rate, y_rate, z_rate,
+                                0, update_fs, x_rate, y_rate, z_rate,
                                 gyro_temp, uavcan_use_export(i2c_data));
                 }
 

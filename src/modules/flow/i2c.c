@@ -104,7 +104,7 @@ uint8_t stop_accumulation = 0;
 
 static uint32_t update_thistime = 0;
 static uint32_t update_lasttime = 0;
-float update_deltatime = 0;
+float update_fs = 0.0f;
 
 void i2c_init() {
 
@@ -265,7 +265,7 @@ void I2C1_ER_IRQHandler(void) {
 // after
 // update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
 //			accumulated_valid_framecount, accumulated_framecount,
-//			accumulated_quality/accumulated_valid_framecount, update_deltatime, x_rate, y_rate, z_rate,
+//			accumulated_quality/accumulated_valid_framecount, update_fs, x_rate, y_rate, z_rate,
 //			gyro_temp, uavcan_use_export(i2c_data));
 
 void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
@@ -277,19 +277,19 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	
 	// sampletime in ms
     update_thistime = get_boot_time_ms();
-	update_deltatime = (float)(update_thistime - update_lasttime);
+    update_fs = 1.0f/( (float)(update_thistime - update_lasttime) * 0.001f );
 	update_lasttime = update_thistime;
 
 	i2c_frame f;
 	i2c_integral_frame f_integral;
 
-	f.frame_count = frame_count;
+    f.frame_count = ground_distance * 100.0f;    // update_fs flow_comp in Hz * 100
 	f.pixel_flow_x_sum = pixel_flow_x * 6000.0f; // accumulated_flow_x/accumulated_valid_framecount
 	f.pixel_flow_y_sum = pixel_flow_y * 6000.0f; // accumulated_flow_y/accumulated_valid_framecount
 	f.flow_comp_m_x = flow_comp_m_x;             // accumulated_valid_framecount
 	f.flow_comp_m_y = flow_comp_m_y;             // accumulated_framecount
 	f.qual = qual;                               // accumulated_quality/accumulated_valid_framecount
-	f.ground_distance = update_deltatime;        // update_deltatime TX_buffer in ms
+    f.ground_distance = update_fs * 100.0f;      // update_fs TX_buffer in Hz * 100
 
 	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // avg gyro after the readout from i2c you have to scale it with 3.7742e-04 to get rad/s
 	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
@@ -301,15 +301,12 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	time_since_last_sonar_update = (get_boot_time_us()
 			- get_sonar_measure_time());
 
-    /*
 	if (time_since_last_sonar_update < 255 * 1000) {
 		f.sonar_timestamp = time_since_last_sonar_update / 1000; //convert to ms
 	} else {
 		f.sonar_timestamp = 255;
 	}
-    */
-
-    f.sonar_timestamp = ground_distance / 100.0f; // update_deltatime flow_comp in mus
+    // f.sonar_timestamp = ground_distance * 100.0f; // update_fs flow_comp in Hz * 10
 
 	static float accumulated_flow_x = 0;
 	static float accumulated_flow_y = 0;
