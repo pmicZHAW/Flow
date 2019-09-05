@@ -291,10 +291,10 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	f.qual = qual;                               // accumulated_quality/accumulated_valid_framecount
     f.ground_distance = update_fs * 100.0f;      // update_fs TX_buffer in Hz * 100
 
-	f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // avg gyro after the readout from i2c you have to scale it with 3.7742e-04 to get rad/s
+    f.gyro_x_rate = gyro_x_rate * getGyroScalingFactor() * 155; // you have to scale it with 1/155/10 to get rad/s
 	f.gyro_y_rate = gyro_y_rate * getGyroScalingFactor() * 155;
 	f.gyro_z_rate = gyro_z_rate * getGyroScalingFactor() * 155;
-    f.gyro_range = gyro_temp; // temperature * 100 in centi-degrees Celsius
+    f.gyro_range = gyro_temp; // temperature * 100 in centi-degrees Celsius (maybe overflow, scaling not checked)
 
 	uint32_t time_since_last_sonar_update;
 
@@ -306,7 +306,6 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	} else {
 		f.sonar_timestamp = 255;
 	}
-    // f.sonar_timestamp = ground_distance * 100.0f; // update_fs flow_comp in Hz * 10
 
 	static float accumulated_flow_x = 0;
 	static float accumulated_flow_y = 0;
