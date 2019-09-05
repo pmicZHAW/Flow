@@ -581,11 +581,25 @@ int main(void)
 
 				//	update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
 				//			ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
-				//update I2C transmitbuffer
-				update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
-							accumulated_valid_framecount, accumulated_framecount,
-                            accumulated_quality/accumulated_valid_framecount, update_deltatime, x_rate, y_rate, z_rate,
-							gyro_temp, uavcan_use_export(i2c_data));
+                //  void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
+                //                        float flow_comp_m_x, float flow_comp_m_y,
+                //                        uint8_t qual, float ground_distance, float gyro_x_rate, float gyro_y_rate, float gyro_z_rate,
+                //                        int16_t gyro_temp, legacy_12c_data_t *pd)
+                //update I2C transmitbuffer
+                if(accumulated_valid_framecount > 0)
+                {
+                    update_TX_buffer(accumulated_flow_x/accumulated_valid_framecount, accumulated_flow_y/accumulated_valid_framecount,
+                                accumulated_valid_framecount, accumulated_framecount,
+                                accumulated_quality/accumulated_valid_framecount, update_deltatime, x_rate, y_rate, z_rate,
+                                gyro_temp, uavcan_use_export(i2c_data));
+                }
+                else
+                {
+                    update_TX_buffer(0.0f, 0.0f,
+                                accumulated_valid_framecount, accumulated_framecount,
+                                0, update_deltatime, x_rate, y_rate, z_rate,
+                                gyro_temp, uavcan_use_export(i2c_data));
+                }
 
 				// send flow
 				mavlink_msg_optical_flow_send(MAVLINK_COMM_0, get_boot_time_us(), global_data.param[PARAM_SENSOR_ID],

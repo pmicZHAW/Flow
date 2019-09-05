@@ -309,7 +309,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	}
     */
 
-    f.sonar_timestamp = ground_distance / 50.0f; // update_deltatime flow_comp in mus
+    f.sonar_timestamp = ground_distance / 100.0f; // update_deltatime flow_comp in mus
 
 	static float accumulated_flow_x = 0;
 	static float accumulated_flow_y = 0;
