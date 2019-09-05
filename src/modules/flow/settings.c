@@ -226,7 +226,7 @@ void global_data_reset_param_defaults(void){
 	global_data.param_access[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = READ_WRITE;
 
 	// ok, pmic, 50.0f := 50 Hz Updaterate
-    global_data.param[PARAM_BOTTOM_FLOW_PUB_RATE] = 21.0f;
+    global_data.param[PARAM_BOTTOM_FLOW_PUB_RATE] = 22.0f;
 	strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_PUB_RATE], "BFLOW_RATE");
 	global_data.param_access[PARAM_BOTTOM_FLOW_PUB_RATE] = READ_WRITE;
 
