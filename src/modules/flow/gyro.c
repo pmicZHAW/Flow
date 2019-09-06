@@ -92,13 +92,13 @@ void gyro_read(float* x_rate, float* y_rate, float* z_rate, int16_t* gyro_temp)
 	z_rate_raw = (uint8_t)l3gd20_SendHalfWord(0x8000 | 0x2C00);
 	z_rate_raw |= ((uint16_t)l3gd20_SendHalfWord(0x8000 | 0x2D00)) << 8;
 
-	/* offset elimination */
-	x_rate_offset = (1.0f - gyro_offset_lp_gain) * x_rate_offset + gyro_offset_lp_gain * ((float) x_rate_raw) * gyro_scale;
-	y_rate_offset = (1.0f - gyro_offset_lp_gain) * y_rate_offset + gyro_offset_lp_gain * ((float) y_rate_raw) * gyro_scale;
-	z_rate_offset = (1.0f - gyro_offset_lp_gain) * z_rate_offset + gyro_offset_lp_gain * ((float) z_rate_raw) * gyro_scale;
-	*x_rate = x_rate_raw * gyro_scale - x_rate_offset;
-	*y_rate = y_rate_raw * gyro_scale - y_rate_offset;
-	*z_rate = z_rate_raw * gyro_scale - z_rate_offset;
+    /* offset elimination,  1 / 2.0f * 1.17f only valid with 500dps, 1.17 measured, pmic */
+    x_rate_offset = (1.0f - gyro_offset_lp_gain) * x_rate_offset + gyro_offset_lp_gain * ((float) x_rate_raw) * gyro_scale / 2.0f * 1.17f;
+    y_rate_offset = (1.0f - gyro_offset_lp_gain) * y_rate_offset + gyro_offset_lp_gain * ((float) y_rate_raw) * gyro_scale / 2.0f * 1.17f;
+    z_rate_offset = (1.0f - gyro_offset_lp_gain) * z_rate_offset + gyro_offset_lp_gain * ((float) z_rate_raw) * gyro_scale / 2.0f * 1.17f;
+    *x_rate = x_rate_raw * gyro_scale / 2.0f * 1.17f - x_rate_offset;
+    *y_rate = y_rate_raw * gyro_scale / 2.0f * 1.17f - y_rate_offset;
+    *z_rate = z_rate_raw * gyro_scale / 2.0f * 1.17f - z_rate_offset;
 
 	int8_t temp_raw = 0;
 	temp_raw = (int8_t)l3gd20_SendHalfWord(0x8000 | 0x2600);

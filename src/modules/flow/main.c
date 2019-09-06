@@ -304,9 +304,12 @@ int main(void)
     i2c_init();
 
 	/* sonar config*/
-	float sonar_distance_filtered = 0.0f; // distance in meter
-	float sonar_distance_raw = 0.0f; // distance in meter
-	bool distance_valid = false;
+//  float sonar_distance_filtered = 0.0f; // distance in meter
+//	float sonar_distance_raw = 0.0f; // distance in meter
+//	bool distance_valid = false;
+    float sonar_distance_filtered = 1.0f; // distance in meter
+    float sonar_distance_raw = 1.0f; // distance in meter
+    bool distance_valid = true;
 	sonar_config();
 
 	/* reset/start timers */
@@ -343,6 +346,9 @@ int main(void)
 	static uint32_t lasttime = 0;
 	uint32_t time_since_last_sonar_update= 0;
 	uint32_t time_last_pub= 0;
+
+    float flow_compx = 0.0f;
+    float flow_compy = 0.0f;
 
 	uavcan_start();
 	/* main loop */
@@ -414,13 +420,13 @@ int main(void)
 		const float focal_length_px = (global_data.param[PARAM_FOCAL_LENGTH_MM]) / (4.0f * 6.0f) * 1000.0f; //original focal lenght: 12mm pixelsize: 6um, binning 4 enabled
 
 		/* get sonar data */
-		distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
+//		distance_valid = sonar_read(&sonar_distance_filtered, &sonar_distance_raw);
 
 		/* reset to zero for invalid distances */
-		if (!distance_valid) {
-			sonar_distance_filtered = 0.0f;
-			sonar_distance_raw = 0.0f;
-		}
+//		if (!distance_valid) {
+//            sonar_distance_filtered = 0.0f;
+//		 	sonar_distance_raw = 0.0f;
+//		}
 
 		/* compute optical flow */
 		if (FLOAT_EQ_INT(global_data.param[PARAM_SENSOR_POSITION], BOTTOM))
@@ -436,8 +442,8 @@ int main(void)
 			 * x / f = X / Z
 			 * y / f = Y / Z
 			 */
-			float flow_compx = pixel_flow_x / focal_length_px / (get_time_between_images() / 1000000.0f);
-			float flow_compy = pixel_flow_y / focal_length_px / (get_time_between_images() / 1000000.0f);
+            flow_compx = pixel_flow_x / focal_length_px / (get_time_between_images() / 1000000.0f);
+            flow_compy = pixel_flow_y / focal_length_px / (get_time_between_images() / 1000000.0f);
 
 			if (qual > 0)
 			{
@@ -520,16 +526,20 @@ int main(void)
 			uavcan_timestamp_export(i2c_data);
                         uavcan_assign(range_data.time_stamp_utc, i2c_data.time_stamp_utc);
 			//update I2C transmitbuffer
-			if(valid_frame_count>0)
-			{
-				update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
-						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
-			}
-			else
-			{
-				update_TX_buffer(pixel_flow_x, pixel_flow_y, 0.0f, 0.0f, qual,
-						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
-			}
+//			if(valid_frame_count>0)
+//			{
+//				update_TX_buffer(pixel_flow_x, pixel_flow_y, velocity_x_sum/valid_frame_count, velocity_y_sum/valid_frame_count, qual,
+//						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+//			}
+//			else
+//			{
+//				update_TX_buffer(pixel_flow_x, pixel_flow_y, 0.0f, 0.0f, qual,
+//						ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+//			}
+            update_TX_buffer(pixel_flow_x, pixel_flow_y, flow_compx, flow_compy, qual,
+                    ground_distance, x_rate, y_rate, z_rate, gyro_temp, uavcan_use_export(i2c_data));
+            flow_compx = 0.0f;
+            flow_compy = 0.0f;
 	                PROBE_2(false);
                         uavcan_publish(range, 40, range_data);
 	                PROBE_2(true);
