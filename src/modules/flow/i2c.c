@@ -294,7 +294,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	static float accumulated_gyro_y = 0;
 	static float accumulated_gyro_z = 0;
 	static uint32_t integration_timespan = 0;
-	static uint32_t lasttime = 0;
+    // static uint32_t lasttime = 0;
 
     static uint16_t accumulated_framecount = 0;
     static uint32_t update_thistime = 0;
@@ -316,8 +316,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
     update_fs = 1.0f/( (float)deltatime * 0.000001f );
     update_lasttime = update_thistime;
 
-	// reset if readout has been performed or if no readout has been performed for over 1 second
-	if ( (stop_accumulation == 1) || (deltatime > 1000000) ) {
+    // reset if readout has been performed or if no readout has been performed for over 0.11 second
+    if ( (stop_accumulation == 1) || (update_lasttime - readout_lasttime > 110000) ) {
 
 		//debug output
 //		mavlink_msg_optical_flow_send(MAVLINK_COMM_2, get_boot_time_us(),
@@ -348,7 +348,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	//update only if qual !=0
 	if (qual > 0) {
 		// uint32_t deltatime = (get_boot_time_us() - lasttime);
-		// integration_timespan += deltatime;
+        integration_timespan += deltatime;
         accumulated_flow_x += flow_comp_m_x;
         accumulated_flow_y += flow_comp_m_y;
         accumulated_valid_framecount++;
@@ -358,11 +358,10 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
         accumulated_gyro_z += gyro_z_rate;
         accumulated_gyro_temp += gyro_temp;
 	}
-	integration_timespan += deltatime;
     accumulated_framecount++;
 
 	//update lasttime
-	lasttime = get_boot_time_us();
+    // lasttime = get_boot_time_us();
 
 //	f_integral.frame_count_since_last_readout = accumulated_valid_framecount;
 //	f_integral.gyro_x_rate_integral = accumulated_gyro_x * 10.0f;	//mrad*10
@@ -400,7 +399,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
         f_integral.ground_distance = readout_fs * 1000.0f;	   // i2c readout update rate in Hz, scale it with 1/1000 to get Hz
         f_integral.sonar_timestamp = accumulated_framecount;   // nr. of frames between i2c readings
         f_integral.qual = (uint8_t) ((float)accumulated_quality / (float)accumulated_valid_framecount);   // avg 0-255 linear quality measurement 0=bad, 255=best
-		f_integral.gyro_temperature = integration_timespan; // integration timespan in mus
+        f_integral.gyro_temperature = (float)integration_timespan * 0.1f; // integration timespan in mus/10
     }
     else
     {
@@ -411,10 +410,10 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
         f_integral.pixel_flow_x_integral = 0; // accumulated_flow_x/accumulated_valid_framecount
         f_integral.pixel_flow_y_integral = 0; // accumulated_flow_y/accumulated_valid_framecount
         f_integral.integration_timespan = update_fs * 1000.0f; // i2c averaging update rate in Hz * 1000
-        f_integral.ground_distance = readout_fs * 1000.0f;		       // i2c readout update rate in Hz * 1000
+        f_integral.ground_distance = readout_fs * 1000.0f;	   // i2c readout update rate in Hz * 1000
         f_integral.sonar_timestamp = accumulated_framecount;   // nr. of frames between i2c readings
         f_integral.qual = 0; // 0-255 linear quality measurement 0=bad, 255=best
-		f_integral.gyro_temperature = integration_timespan; // integration timespan in mus
+        f_integral.gyro_temperature = 0; // integration timespan in mus
     }
 
 	notpublishedIndexFrame1 = 1 - publishedIndexFrame1; // choose not the current published 1 buffer
