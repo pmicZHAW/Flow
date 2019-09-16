@@ -293,7 +293,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	static float accumulated_gyro_x = 0;
 	static float accumulated_gyro_y = 0;
 	static float accumulated_gyro_z = 0;
-	static uint32_t integration_timespan = 0;
+    static uint32_t integration_timespan = 0;
     // static uint32_t lasttime = 0;
 
     static uint16_t accumulated_framecount = 0;
@@ -312,7 +312,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 
 	// update frequency i2c averaging
     update_thistime = get_boot_time_us();
-	deltatime = update_thistime - update_lasttime;
+    deltatime = update_thistime - update_lasttime;
     update_fs = 1.0f/( (float)deltatime * 0.000001f );
     update_lasttime = update_thistime;
 
