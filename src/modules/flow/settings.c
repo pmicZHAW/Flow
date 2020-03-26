@@ -156,17 +156,17 @@ void global_data_reset_param_defaults(void){
     global_data.param_access[PARAM_SONAR_KALMAN_L2] = READ_WRITE;
 
     // ok, pmic, default: 1
-    global_data.param[PARAM_USB_SEND_VIDEO] = 0; // send video over USB
+    global_data.param[PARAM_USB_SEND_VIDEO] = 1; // send video over USB
     strcpy(global_data.param_name[PARAM_USB_SEND_VIDEO], "USB_SEND_VIDEO");
     global_data.param_access[PARAM_USB_SEND_VIDEO] = READ_WRITE;
 
     // ok, pmic, default: 1
-    global_data.param[PARAM_USB_SEND_FLOW] = 0; // send flow over USB
+    global_data.param[PARAM_USB_SEND_FLOW] = 1; // send flow over USB
     strcpy(global_data.param_name[PARAM_USB_SEND_FLOW], "USB_SEND_FLOW");
     global_data.param_access[PARAM_USB_SEND_FLOW] = READ_WRITE;
 
     // ok, pmic, default: 1
-    global_data.param[PARAM_USB_SEND_GYRO] = 0; // send gyro debug values over USB
+    global_data.param[PARAM_USB_SEND_GYRO] = 1; // send gyro debug values over USB
     strcpy(global_data.param_name[PARAM_USB_SEND_GYRO], "USB_SEND_GYRO");
     global_data.param_access[PARAM_USB_SEND_GYRO] = READ_WRITE;
 
@@ -176,7 +176,7 @@ void global_data_reset_param_defaults(void){
     global_data.param_access[PARAM_USB_SEND_FORWARD] = READ_WRITE;
 
     // ok, pmic, default: 1
-    global_data.param[PARAM_USB_SEND_DEBUG] = 0; // send debug msgs over USB
+    global_data.param[PARAM_USB_SEND_DEBUG] = 1; // send debug msgs over USB
     strcpy(global_data.param_name[PARAM_USB_SEND_DEBUG], "USB_SEND_DEBUG");
     global_data.param_access[PARAM_USB_SEND_DEBUG] = READ_WRITE;
 
@@ -225,7 +225,7 @@ void global_data_reset_param_defaults(void){
     strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_WEIGHT_NEW], "BFLOW_W_NEW");
     global_data.param_access[PARAM_BOTTOM_FLOW_WEIGHT_NEW] = READ_WRITE;
 
-    // ok, pmic
+    // ok, pmic, default: 10.0f
     global_data.param[PARAM_BOTTOM_FLOW_PUB_RATE] = 22.0f;
     strcpy(global_data.param_name[PARAM_BOTTOM_FLOW_PUB_RATE], "BFLOW_RATE");
     global_data.param_access[PARAM_BOTTOM_FLOW_PUB_RATE] = READ_WRITE;
