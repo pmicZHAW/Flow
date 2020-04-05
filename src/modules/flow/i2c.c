@@ -388,6 +388,7 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 //    int16_t gyro_temperature;                // Temperature * 100 in centi-degrees Celsius [degcelsius*100] 44
 //    uint8_t quality;                         // averaged quality of accumulated flow values [0:bad quality;255: max quality] 46
 
+/*
     if(accumulated_valid_framecount > 0) {
         f_integral.frame_count_since_last_readout = accumulated_valid_framecount; // nr. of valid frames (qual > 0) between i2c readings
         f_integral.gyro_x_rate_integral = accumulated_gyro_x * getGyroScalingFactor() * 155.0f / (float)accumulated_valid_framecount; // avg gyro x in rad/s, scale it with 1/155/10 to get rad/s
@@ -414,6 +415,23 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
         f_integral.sonar_timestamp = accumulated_framecount;   // nr. of frames between i2c readings
         f_integral.qual = 0; // 0-255 linear quality measurement 0=bad, 255=best
         f_integral.gyro_temperature = 0; // integration timespan in mus
+    }
+*/
+
+	if(accumulated_valid_framecount > 0) {       
+		f_integral.avg_flow_x        = accumulated_flow_x * 3000.0f / (float)accumulated_valid_framecount; // avg flow x in mm/s, scale it with 1/3 to get mm/s
+        f_integral.avg_flow_y        = accumulated_flow_y * 3000.0f / (float)accumulated_valid_framecount; // avg flow y in mm/s, scale it with 1/3 to get mm/s
+        f_integral.avg_qual          = (uint8_t) ((float)accumulated_quality / (float)accumulated_valid_framecount);   // avg 0-255 linear quality measurement 0=bad, 255=best
+		f_integral.valid_frame_count = accumulated_framecount;       // nr. of frames between i2c readings
+		f_integral.all_frame_count   = accumulated_valid_framecount; // nr. of valid frames (qual > 0) between i2c readings
+    }
+    else
+    {
+		f_integral.avg_flow_x        = 0; // avg flow x in mm/s, scale it with 1/3 to get mm/s
+        f_integral.avg_flow_y        = 0; // avg flow y in mm/s, scale it with 1/3 to get mm/s
+        f_integral.avg_qual          = 0; // avg 0-255 linear quality measurement 0=bad, 255=best
+		f_integral.valid_frame_count = accumulated_framecount;       // nr. of frames between i2c readings
+		f_integral.frame_count       = accumulated_valid_framecount; // nr. of valid frames (qual > 0) between i2c readings
     }
 
 	notpublishedIndexFrame1 = 1 - publishedIndexFrame1; // choose not the current published 1 buffer
