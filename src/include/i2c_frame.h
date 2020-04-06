@@ -91,23 +91,6 @@ typedef  struct i2c_frame
 
 #define I2C_FRAME_SIZE (sizeof(i2c_frame))
 
-/*
-typedef struct i2c_integral_frame
-{
-    uint16_t frame_count_since_last_readout;
-    int16_t pixel_flow_x_integral;
-    int16_t pixel_flow_y_integral;
-    int16_t gyro_x_rate_integral;
-    int16_t gyro_y_rate_integral;
-    int16_t gyro_z_rate_integral;
-    uint32_t integration_timespan;
-    uint32_t sonar_timestamp;
-    uint16_t ground_distance;
-    int16_t gyro_temperature;
-    uint8_t qual;
-} i2c_integral_frame;
-*/
-
 typedef struct i2c_integral_frame
 {
 	int16_t avg_flow_x;
