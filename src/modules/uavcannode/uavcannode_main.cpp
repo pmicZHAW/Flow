@@ -294,6 +294,7 @@ int UavcanNode::publish(legacy_12c_data_t *pdata)
   r.frame.gyro_y_rate = pdata->frame.gyro_y_rate;
   r.frame.gyro_z_rate = pdata->frame.gyro_z_rate;
   r.frame.gyro_range = pdata->frame.gyro_range;
+  /*
   r.integral.frame_count_since_last_readout = pdata->integral_frame.frame_count_since_last_readout;
   r.integral.pixel_flow_x_integral = pdata->integral_frame.pixel_flow_x_integral;
   r.integral.pixel_flow_y_integral = pdata->integral_frame.pixel_flow_y_integral;
@@ -305,6 +306,7 @@ int UavcanNode::publish(legacy_12c_data_t *pdata)
   r.integral.ground_distance = pdata->integral_frame.ground_distance;
   r.integral.gyro_temperature = pdata->integral_frame.gyro_temperature;
   r.integral.qual = pdata->integral_frame.qual;
+  */
   _flow_pulisher.broadcast(r);
   return PX4_OK;
 
