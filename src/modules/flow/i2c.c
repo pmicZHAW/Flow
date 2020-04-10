@@ -304,8 +304,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 
     if(accumulated_valid_framecount > 0) {
         float accumulated_valid_framecount_float = (float) accumulated_valid_framecount;
-        f_integral.avg_flow_x        = (uint32_t)( accumulated_flow_x * 3000.0f / accumulated_valid_framecount_float ); // avg flow x in mm/s, scale it with 1/3 to get mm/s
-        f_integral.avg_flow_y        = (uint32_t)( accumulated_flow_y * 3000.0f / accumulated_valid_framecount_float ); // avg flow y in mm/s, scale it with 1/3 to get mm/s
+        f_integral.avg_flow_x        = (int32_t)( accumulated_flow_x * 3000.0f / accumulated_valid_framecount_float ); // avg flow x in mm/s, scale it with 1/3 to get mm/s
+        f_integral.avg_flow_y        = (int32_t)( accumulated_flow_y * 3000.0f / accumulated_valid_framecount_float ); // avg flow y in mm/s, scale it with 1/3 to get mm/s
         f_integral.avg_qual          = (uint8_t) ( (float)accumulated_quality   / accumulated_valid_framecount_float ); // avg 0-255 linear quality measurement 0=bad, 255=best
         f_integral.valid_frame_count = (uint8_t) accumulated_valid_framecount; // nr. of frames between i2c readings
     }
